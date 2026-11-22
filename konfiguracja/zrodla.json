@@ -1,0 +1,34 @@
+{
+  "bzp": {
+    "nazwa": "BZP / e-Zamówienia",
+    "url": "http://127.0.0.1:8010"
+  },
+  "ted": {
+    "nazwa": "TED – Dziennik Urzędowy UE",
+    "wlaczone": true,
+    "url": "https://api.ted.europa.eu/v3/notices/search",
+    "kraj": "POL",
+    "od": "2021-01-01",
+    "cpv": [
+      "45232000",
+      "45232100",
+      "45232150",
+      "45232400",
+      "45232410",
+      "45232411",
+      "45232420",
+      "45232421",
+      "45232423",
+      "45232430",
+      "45231300",
+      "45252100",
+      "45252127",
+      "45247270",
+      "45332000"
+    ],
+    "limit_ogloszen": 2000
+  },
+  "monitoring": {
+    "co_ile_godzin": 6
+  }
+}
