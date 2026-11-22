@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="pl" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="google" content="notranslate">
+<title>BidRadar — Ryzyka inwestycji wodno-kanalizacyjnych, zanim się wydarzą</title>
+<meta name="description" content="BidRadar łączy dane z Biuletynu Zamówień Publicznych, TED i dokumentów projektów. Pokazuje podobne zakończone inwestycje wodno-kanalizacyjne, realne przedziały opóźnień i wzrostu kosztów oraz czerwone flagi. Każda liczba prowadzi do źródła, a każdy wniosek zatwierdza ekspert.">
+<link rel="icon" type="image/png" href="/static/favicon.png">
+<style>{{FONTS}}</style>
+<style>
+
+:root{
+  --c-bg:#f5f9ee; --c-surface:#ffffff; --c-surface-2:#f6faef; --c-line:#e3ecd6;
+  --c-ink:#1b2410; --c-ink-2:#535e47; --c-ink-3:#626b58;
+  --c-brand:#8fd11f; --c-brand-600:#7dbb12; --c-brand-50:#f1f9e2; --c-brand-100:#d9efb0; --c-brand-ink:#3d6b00; --c-on-brand:#16220a;
+  --c-deep:#2d5a0e;
+  --c-ok:#237047; --c-ok-50:#e6f4ec;
+  --c-warn:#96600f; --c-warn-50:#fdf3e1;
+  --c-bad:#c0392b; --c-bad-50:#fbeae8;
+  --c-none:#6b7466; --c-none-50:#eef1ef;
+  --c-src:#1d5d99; --c-src-50:#e7f1fb;
+  --c-calc:#4b3db3; --c-calc-50:#efedff;
+  --c-exp:#8a5a00; --c-exp-50:#fff4dc;
+  --map-sea:#e6efdf; --map-border:#7dbb12;
+  --f-sans:"Manrope",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --r-sm:8px; --r-md:12px; --r-lg:16px;
+  --sh-1:0 1px 2px rgba(16,32,28,.06),0 1px 3px rgba(16,32,28,.04);
+  --sh-2:0 6px 20px rgba(16,32,28,.10);
+  --sh-3:0 18px 50px rgba(16,32,28,.14);
+  --t-fast:150ms; --t-med:200ms; --ease:cubic-bezier(.2,.7,.2,1);
+  --wrap:1160px;
+}
+@media (prefers-reduced-motion: reduce){
+  :root{--t-fast:0ms;--t-med:0ms}
+  *{animation-duration:0ms!important;transition-duration:0ms!important;scroll-behavior:auto!important}
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{margin:0;font:500 16px/1.6 var(--f-sans);color:var(--c-ink);background:var(--c-bg);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{margin:0;line-height:1.2;font-weight:700;letter-spacing:-.02em}
+p{margin:0}
+a{color:inherit}
+img,svg{display:block}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 24px}
+.skip{position:absolute;left:-9999px;top:8px;z-index:100;background:var(--c-surface);padding:10px 14px;border-radius:8px;box-shadow:var(--sh-2)}
+.skip:focus{left:12px}
+:focus-visible{outline:2px solid var(--c-brand-ink);outline-offset:3px;border-radius:6px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 20px;border-radius:12px;font:600 15px/1 var(--f-sans);text-decoration:none;border:1px solid transparent;cursor:pointer;transition:background var(--t-fast),border-color var(--t-fast),box-shadow var(--t-fast),color var(--t-fast);white-space:nowrap}
+.btn svg{width:18px;height:18px;flex:none}
+.btn-primary{background:var(--c-brand);color:var(--c-on-brand)}
+.btn-primary:hover{background:var(--c-brand-600);box-shadow:var(--sh-1)}
+.btn-line{background:var(--c-surface);border-color:var(--c-line);color:var(--c-ink)}
+.btn-line:hover{border-color:var(--c-brand);color:var(--c-brand-ink)}
+.btn-sm{min-height:44px;padding:0 16px;font-size:14px}
+
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;line-height:1;padding:5px 8px;border-radius:4px;background:var(--c-none-50);color:var(--c-ink-2);white-space:nowrap}
+.tag svg{width:13px;height:13px}
+.t-src{background:var(--c-src-50);color:var(--c-src)}
+.t-calc{background:var(--c-calc-50);color:var(--c-calc)}
+.t-exp{background:var(--c-exp-50);color:var(--c-exp)}
+.t-ok{background:var(--c-ok-50);color:var(--c-ok)}
+.t-warn{background:var(--c-warn-50);color:var(--c-warn)}
+.t-bad{background:var(--c-bad-50);color:var(--c-bad)}
+.t-brand{background:var(--c-brand-50);color:var(--c-brand-ink)}
+
+.nav{position:sticky;top:0;z-index:50;background:var(--c-surface);border-bottom:1px solid var(--c-line)}
+.nav .wrap{display:flex;align-items:center;gap:28px;height:68px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand img{height:34px;width:auto}
+.wm{font:700 22px/1 var(--f-sans);letter-spacing:-.04em;color:var(--c-deep)}
+.wm span{color:var(--c-brand-600)}
+.nav nav{display:flex;gap:4px;margin-left:8px}
+.nav nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;color:var(--c-ink-2);transition:color var(--t-fast),background var(--t-fast)}
+.nav nav a:hover{color:var(--c-ink);background:var(--c-surface-2)}
+.nav .act{margin-left:auto;display:flex;gap:10px}
+.menu-btn{display:none;margin-left:auto;width:44px;height:44px;border-radius:10px;border:1px solid var(--c-line);background:var(--c-surface);cursor:pointer;place-items:center;color:var(--c-ink)}
+.menu-btn svg{width:22px;height:22px}
+.mnav{display:none;border-top:1px solid var(--c-line);background:var(--c-surface);padding:8px 24px 16px}
+.mnav a{display:flex;align-items:center;min-height:48px;text-decoration:none;font-weight:600;border-bottom:1px solid var(--c-line)}
+.mnav .btn{width:100%;margin-top:12px}
+.mnav.open{display:block}
+
+.hero{padding:64px 0 72px}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:56px;align-items:center}
+.eyebrow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+.hero h1{font-size:clamp(34px,4.6vw,54px);letter-spacing:-.035em;line-height:1.08}
+.hero h1 em{font-style:normal;color:var(--c-brand-ink)}
+.lead{margin-top:20px;font-size:18px;line-height:1.6;color:var(--c-ink-2);max-width:540px}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.trust{display:flex;flex-wrap:wrap;gap:18px 26px;margin-top:34px;padding-top:24px;border-top:1px solid var(--c-line);font-size:14px;color:var(--c-ink-2)}
+.trust div{display:flex;align-items:center;gap:8px}
+.trust svg{width:18px;height:18px;color:var(--c-brand-ink);flex:none}
+
+.mock{background:var(--c-surface);border-radius:20px;box-shadow:var(--sh-3);border:1px solid var(--c-line);overflow:hidden}
+.mock-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--c-line);font-size:13px;font-weight:600;color:var(--c-ink-2)}
+.mock-bar .tabs{display:flex;gap:4px}
+.mock-bar .tabs span{padding:6px 10px;border-radius:6px}
+.mock-bar .tabs .on{background:var(--c-brand-50);color:var(--c-brand-ink)}
+.mock-bar .q{margin-left:auto;display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--c-line);border-radius:8px;color:var(--c-ink-3);font-weight:500}
+.mock-bar .q svg{width:14px;height:14px}
+.mock-body{display:grid;grid-template-columns:1.25fr 1fr}
+.map{background:var(--map-sea);position:relative;padding:14px}
+.map svg{width:100%;height:auto}
+.map .woj{fill:none;stroke:#d3e3bd;stroke-width:1}
+.map .pl{fill:#fff;stroke:var(--map-border);stroke-width:2}
+.map .pin{stroke:#fff;stroke-width:2.2}
+.map .pin.ok{fill:var(--c-ok)} .map .pin.warn{fill:#c98a1a} .map .pin.bad{fill:var(--c-bad)} .map .pin.none{fill:#97a08f}
+.map .ring{fill:rgba(143,209,31,.16);stroke:var(--c-brand-ink);stroke-width:1.6;stroke-dasharray:5 4}
+.map .sel{fill:var(--c-brand-ink)}
+.map .lbl{font:700 13px var(--f-sans);fill:var(--c-deep)}
+.legend{position:absolute;left:14px;bottom:14px;display:grid;gap:4px;background:var(--c-surface);border:1px solid var(--c-line);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:600;color:var(--c-ink-2)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.side{padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--c-surface)}
+.side .area{font-size:12px;color:var(--c-ink-3);font-weight:600}
+.side .area b{display:block;font-size:15px;color:var(--c-ink);margin-top:2px}
+.kpi{border:1px solid var(--c-line);border-radius:10px;padding:10px 12px}
+.kpi .k{font-size:12px;color:var(--c-ink-3);font-weight:600}
+.kpi .v{display:flex;align-items:baseline;gap:6px;font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:12px;font-weight:600;color:var(--c-ink-3);letter-spacing:0}
+.kpi .tag{margin-top:6px}
+.risks{display:flex;flex-wrap:wrap;gap:6px}
+.side .btn{min-height:40px;font-size:13px;margin-top:auto;pointer-events:none}
+.mock-cap{margin-top:12px;font-size:13px;color:var(--c-ink-3);text-align:center}
+
+section{padding:88px 0}
+.sec-h{max-width:720px;margin-bottom:44px}
+.sec-h .tag{margin-bottom:14px}
+.sec-h h2{font-size:clamp(28px,3.2vw,38px)}
+.sec-h p{margin-top:14px;font-size:17px;color:var(--c-ink-2)}
+.alt{background:var(--c-surface);border-top:1px solid var(--c-line);border-bottom:1px solid var(--c-line)}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.stat{background:var(--c-surface);border:1px solid var(--c-line);border-radius:var(--r-lg);padding:22px}
+.stat .n{font-size:40px;font-weight:800;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;color:var(--c-deep)}
+.stat .n small{font-size:20px;color:var(--c-ink-3);font-weight:700}
+.stat p{margin-top:10px;font-size:14px;color:var(--c-ink-2)}
+.src-note{margin-top:18px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--c-ink-3)}
+.src-note svg{width:16px;height:16px;color:var(--c-src)}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;counter-reset:s}
+.step{background:var(--c-bg);border-radius:var(--r-lg);padding:26px;border:1px solid var(--c-line)}
+.step .num{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--c-brand);color:var(--c-on-brand);font-weight:800;font-size:17px}
+.step h3{margin-top:18px;font-size:20px}
+.step p{margin-top:10px;color:var(--c-ink-2);font-size:15px}
+.step ul{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:8px;font-size:14px;color:var(--c-ink-2)}
+.step li{display:flex;gap:8px}
+.step li svg{width:18px;height:18px;flex:none;color:var(--c-brand-ink);margin-top:2px}
+
+.layers{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.layer{background:var(--c-surface);border-radius:var(--r-lg);padding:24px;border:1px solid var(--c-line);border-top:4px solid var(--lc)}
+.layer h3{margin-top:14px;font-size:19px}
+.layer p{margin-top:8px;color:var(--c-ink-2);font-size:15px}
+.layer .ex{margin-top:16px;padding:12px;border-radius:8px;background:var(--c-surface-2);font-size:13px;color:var(--c-ink-2);border-left:3px solid var(--lc)}
+.layer .ex b{color:var(--c-ink);font-weight:700}
+
+.chain-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:48px;align-items:start}
+.chain{background:var(--c-surface);border:1px solid var(--c-line);border-radius:var(--r-lg);box-shadow:var(--sh-2);overflow:hidden}
+.chain-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:16px 20px;border-bottom:1px solid var(--c-line)}
+.chain-h h3{font-size:16px;margin-right:auto}
+.chain ol{list-style:none;margin:0;padding:8px 20px 4px}
+.chain li{display:grid;grid-template-columns:110px 1fr;gap:16px;padding:14px 0;border-bottom:1px dashed var(--c-line)}
+.chain li:last-child{border-bottom:0}
+.chain .k{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-ink-3);padding-top:2px}
+.chain .v{font-size:15px}
+.chain .v .tag{margin-top:8px}
+.quote{margin-top:8px;padding:10px 12px;background:var(--c-src-50);border-left:3px solid var(--c-src);font-size:13px;color:var(--c-ink-2);border-radius:0 6px 6px 0}
+.quote cite{display:block;margin-top:4px;font-style:normal;font-weight:700;color:var(--c-src)}
+.chain-f{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:14px 20px;background:var(--c-surface-2);border-top:1px solid var(--c-line);font-size:13px;color:var(--c-ink-2)}
+.chk{list-style:none;padding:0;margin:24px 0 0;display:grid;gap:14px}
+.chk li{display:flex;gap:12px;font-size:15px;color:var(--c-ink-2)}
+.chk li b{color:var(--c-ink)}
+.chk svg{width:22px;height:22px;flex:none;color:var(--c-brand-ink);background:var(--c-brand-50);border-radius:6px;padding:3px}
+
+.roles{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.role{background:var(--c-surface);border:1px solid var(--c-line);border-radius:var(--r-lg);padding:26px;display:flex;flex-direction:column}
+.role .ic{width:46px;height:46px;border-radius:12px;background:var(--c-brand-50);color:var(--c-brand-ink);display:grid;place-items:center}
+.role .ic svg{width:24px;height:24px}
+.role h3{margin-top:18px;font-size:19px}
+.role .who{margin-top:4px;font-size:13px;color:var(--c-ink-3);font-weight:600}
+.role p{margin-top:12px;color:var(--c-ink-2);font-size:15px}
+
+.exp-wrap{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:48px;align-items:center}
+.queue{background:var(--c-surface);border:1px solid var(--c-line);border-radius:var(--r-lg);box-shadow:var(--sh-2);padding:8px}
+.qi{padding:16px;border-radius:12px}
+.qi+.qi{border-top:1px solid var(--c-line);border-radius:0}
+.qi-h{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.qi h4{font-size:15px;margin-top:10px}
+.qi p{font-size:13px;color:var(--c-ink-2);margin-top:4px}
+.qi .why{margin-top:10px;font-size:13px;color:var(--c-ink-2);display:flex;gap:6px;flex-wrap:wrap}
+.qi .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.qi .acts span{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;border:1px solid var(--c-line)}
+.qi .acts .a-ok{border-color:var(--c-ok);color:var(--c-ok)}
+.qi .acts .a-bad{border-color:var(--c-bad);color:var(--c-bad)}
+.qi .acts svg{width:14px;height:14px}
+
+.sources{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.srcc{background:var(--c-surface);border:1px solid var(--c-line);border-radius:var(--r-lg);padding:22px}
+.srcc h3{font-size:17px;margin-top:12px}
+.srcc p{margin-top:8px;font-size:14px;color:var(--c-ink-2)}
+.srcc .meta{margin-top:14px;font-size:13px;font-weight:700;color:var(--c-deep)}
+.honest{margin-top:24px;display:flex;gap:14px;padding:18px 20px;border-radius:var(--r-md);background:var(--c-warn-50);color:#5f3e08;font-size:14px}
+.honest svg{width:22px;height:22px;flex:none;color:var(--c-warn)}
+
+.faq{max-width:820px}
+.faq details{border-bottom:1px solid var(--c-line)}
+.faq summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:16px;min-height:64px;padding:12px 0;font-weight:700;font-size:17px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary svg{width:20px;height:20px;margin-left:auto;flex:none;color:var(--c-ink-3);transition:transform var(--t-med) var(--ease)}
+.faq details[open] summary svg{transform:rotate(45deg)}
+.faq details p{padding:0 40px 20px 0;color:var(--c-ink-2)}
+
+.final{padding:0 0 88px}
+.final-box{background:var(--c-deep);color:#eef7e2;border-radius:24px;padding:56px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:32px;align-items:center}
+.final-box h2{font-size:clamp(26px,3vw,36px);color:#fff}
+.final-box p{margin-top:12px;color:#cfe2b8;font-size:17px;max-width:560px}
+.final-box .cta{margin-top:0}
+.final-box .btn-line{background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}
+.final-box .btn-line:hover{border-color:var(--c-brand);color:var(--c-brand)}
+.final-box :focus-visible{outline-color:var(--c-brand)}
+code{font:600 .92em ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--c-none-50);padding:2px 6px;border-radius:4px}
+.final-box code{background:rgba(255,255,255,.12);color:#fff}
+
+footer{border-top:1px solid var(--c-line);background:var(--c-surface);padding:36px 0;font-size:14px;color:var(--c-ink-2)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:16px 32px;align-items:center}
+footer .brand img{height:28px}
+footer .wm{font-size:18px}
+footer nav{display:flex;flex-wrap:wrap;gap:4px 18px;margin-left:auto}
+footer nav a{text-decoration:none;font-weight:600;min-height:44px;display:inline-flex;align-items:center}
+footer nav a:hover{color:var(--c-brand-ink)}
+footer .fine{flex-basis:100%;font-size:13px;color:var(--c-ink-3)}
+
+.rv{opacity:0;transform:translateY(12px);transition:opacity 400ms var(--ease),transform 400ms var(--ease)}
+.rv.in{opacity:1;transform:none}
+.no-js .rv{opacity:1;transform:none}
+@media print{.rv{opacity:1!important;transform:none!important}.nav{position:static}}
+
+@media (max-width:1040px){
+  .nav nav{display:none}
+  .stats,.sources{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:900px){
+  .hero{padding:40px 0 56px}
+  .hero .wrap,.chain-wrap,.exp-wrap{grid-template-columns:1fr;gap:36px}
+  .steps,.layers,.roles{grid-template-columns:1fr}
+  .final-box{grid-template-columns:1fr;padding:36px 28px}
+  section{padding:64px 0}
+}
+@media (max-width:640px){
+  .wrap{padding:0 18px}
+  .nav .act{display:none}
+  .menu-btn{display:grid}
+  .mock-body{grid-template-columns:1fr}
+  .mock-bar .tabs span:not(.on){display:none}
+  .stats,.sources{grid-template-columns:1fr}
+  .chain li{grid-template-columns:1fr;gap:6px}
+  .legend{position:static;margin-top:10px;grid-template-columns:1fr 1fr}
+  .cta .btn{flex:1 1 100%}
+  .lead{font-size:17px}
+  .faq details p{padding-right:0}
+}
+
+.btn-lg{min-height:52px;padding:0 24px;font-size:16px}
+.btn{transition:background var(--t-fast),border-color var(--t-fast),box-shadow var(--t-fast),color var(--t-fast),transform var(--t-fast) var(--ease)}
+.btn:active{transform:translateY(1px)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(61,107,0,.22)}
+.cta-note{margin-top:12px;font-size:14px;color:var(--c-ink-3)}
+.hero h1 .hl{background:linear-gradient(transparent 62%,var(--c-brand-100) 62%) no-repeat 0 0/0% 100%;transition:background-size 900ms var(--ease) 250ms}
+.hero.in h1 .hl{background-size:100% 100%}
+.rv{transition-delay:calc(var(--d,0) * 90ms)}
+.tilt{transition:transform 260ms var(--ease),box-shadow 260ms var(--ease),border-color var(--t-fast);transform-style:preserve-3d;will-change:transform}
+.tilt:hover{box-shadow:var(--sh-2);border-color:var(--c-brand-100)}
+.map .pin{transform-box:fill-box;transform-origin:center;animation:pinIn 480ms var(--ease) both;animation-delay:calc(var(--i,0) * 70ms + 300ms)}
+@keyframes pinIn{from{opacity:0;transform:scale(.2)}to{opacity:1;transform:none}}
+.map .ring{animation:ants 14s linear infinite}
+@keyframes ants{to{stroke-dashoffset:-180}}
+.mock{transition:transform 600ms var(--ease)}
+.kpi{transition:border-color var(--t-fast),transform var(--t-fast) var(--ease)}
+.mock:hover .kpi{border-color:var(--c-brand-100)}
+
+.cmp-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:40px;align-items:start}
+.cmp-card{margin:0;background:var(--c-surface);border:1px solid var(--c-line);border-radius:var(--r-lg);padding:26px;box-shadow:var(--sh-1)}
+.cmp-legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:14px;font-weight:600;color:var(--c-ink-2);margin-bottom:8px}
+.cmp-legend i{display:inline-block;width:14px;height:14px;border-radius:3px;margin-right:8px;vertical-align:-2px}
+.sw-b{background:var(--c-brand-ink)} .sw-m{background:#8c9486}
+.cmp-g{padding:18px 0;border-top:1px solid var(--c-line)}
+.cmp-g:first-of-type{border-top:0}
+.cmp-g h3{font-size:16px}
+.cmp-g .q{margin-top:4px;font-size:14px;color:var(--c-ink-2)}
+.bar{display:grid;grid-template-columns:110px 1fr 64px;align-items:center;gap:12px;margin-top:10px;font-size:14px}
+.bar .who{font-weight:600;color:var(--c-ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .tr{height:14px;background:var(--c-surface-2);border-radius:3px;overflow:hidden;position:relative}
+.bar .fl{position:absolute;inset:0 auto 0 0;width:0;border-radius:3px;transition:width 1100ms var(--ease)}
+.bar.b .fl{background:var(--c-brand-ink)} .bar.m .fl{background:#8c9486}
+.bar .v{font-weight:800;font-variant-numeric:tabular-nums;text-align:right}
+.bar.na .tr{background:repeating-linear-gradient(90deg,var(--c-line) 0 6px,transparent 6px 12px)}
+.bar.na .v{font-weight:600;font-size:13px;color:var(--c-ink-3)}
+.in .bar .fl{width:var(--w)}
+.cmp-cap{margin-top:14px;font-size:13px;color:var(--c-ink-3)}
+.why{list-style:none;counter-reset:w;margin:18px 0 0;padding:0;display:grid;gap:16px}
+.why li{counter-increment:w;display:grid;grid-template-columns:36px 1fr;gap:14px;font-size:15px;color:var(--c-ink-2)}
+.why li::before{content:counter(w);width:36px;height:36px;display:grid;place-items:center;border-radius:8px;background:var(--c-brand-50);color:var(--c-brand-ink);font-weight:800}
+.why b{color:var(--c-ink)}
+.case{margin-top:24px;border-radius:var(--r-md);background:var(--c-surface-2);border:1px solid var(--c-line);overflow:hidden}
+.case h4{font-size:15px;padding:14px 16px;border-bottom:1px solid var(--c-line)}
+.case .row2{display:grid;grid-template-columns:1fr 1fr}
+.case .col{padding:14px 16px;font-size:14px;color:var(--c-ink-2)}
+.case .col+.col{border-left:1px solid var(--c-line)}
+.case .col b{display:block;color:var(--c-ink);margin-bottom:6px}
+.case .ok{color:var(--c-ok);font-weight:700}.case .bad{color:var(--c-bad);font-weight:700}
+
+.donuts{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.donut{margin:0;position:relative;background:var(--c-surface);border:1px solid var(--c-line);border-radius:18px;padding:22px 20px 20px;display:flex;flex-direction:column;align-items:flex-start}
+.donut svg{width:132px;height:132px;transform:rotate(-90deg)}
+.donut circle{fill:none;stroke-width:12}
+.donut .tr{stroke:var(--c-surface-2)}
+.donut .arc,.donut .arc2{stroke:var(--c);stroke-linecap:butt;stroke-dasharray:0 314.16;transition:stroke-dasharray 1400ms var(--ease)}
+.donut .arc2{stroke:var(--c2)}
+.donut .dv{position:absolute;left:20px;top:22px;width:132px;height:132px;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+.donut .dv b{font-size:26px;font-weight:700;letter-spacing:-.03em}
+.donut .dv span{font-size:16px;font-weight:700;color:var(--c-ink-2);margin-left:1px}
+.donut figcaption{margin-top:16px;font-size:14px;color:var(--c-ink-2);line-height:1.45}
+.donut i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.donut i.k1{background:var(--c)}.donut i.k2{background:var(--c2)}
+.flow{margin-top:20px;display:flex;align-items:stretch;background:var(--c-deep);border-radius:18px;padding:22px;color:#fff;gap:0}
+.fl-node{flex:1 1 0;min-width:0;padding:6px 10px}
+.fl-node b{display:block;font-size:clamp(26px,3vw,38px);font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--lime)}
+.fl-node span{display:block;font-size:13px;color:rgba(255,255,255,.82);line-height:1.35}
+.fl-node.end b{color:#fff}
+.fl-pipe{flex:0 0 56px;position:relative;align-self:center;height:2px;background:rgba(200,241,105,.3)}
+.fl-pipe i{position:absolute;top:-3px;left:0;width:8px;height:8px;border-radius:2px;background:var(--lime);opacity:0;animation:flow 2.4s linear infinite}
+.fl-pipe i:nth-child(2){animation-delay:.8s}.fl-pipe i:nth-child(3){animation-delay:1.6s}
+@keyframes flow{0%{left:0;opacity:0}15%{opacity:1}85%{opacity:1}100%{left:calc(100% - 8px);opacity:0}}
+.story{margin-top:20px;background:var(--c-surface);border:1px solid var(--c-line);border-radius:18px;overflow:hidden}
+.st-h{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--c-line)}
+.st-h h3{font-size:18px}
+.st-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+.st-grid>div{padding:18px 22px}
+.st-grid>div+div{border-left:1px solid var(--c-line)}
+.st-grid small{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-ink-3)}
+.st-grid b{display:block;margin-top:6px;font-size:22px;letter-spacing:-.02em}
+.st-grid b.bad{color:var(--c-bad)}
+.st-grid p{margin-top:6px;font-size:14px;color:var(--c-ink-2)}
+.st-f{padding:16px 22px;background:var(--c-surface-2);border-top:1px solid var(--c-line);font-size:14px;color:var(--c-ink-2)}
+@media (max-width:1040px){.donuts{grid-template-columns:repeat(2,1fr)}.st-grid{grid-template-columns:repeat(2,1fr)}.st-grid>div:nth-child(3){border-left:0}.st-grid>div:nth-child(n+3){border-top:1px solid var(--c-line)}}
+@media (max-width:760px){.flow{flex-direction:column;gap:4px}.fl-pipe{flex:0 0 26px;width:2px;height:26px;margin-left:16px;align-self:flex-start}
+  .fl-pipe i{left:-3px;top:0;animation-name:flowv}@keyframes flowv{0%{top:0;opacity:0}15%{opacity:1}85%{opacity:1}100%{top:calc(100% - 8px);opacity:0}}}
+@media (max-width:560px){.donuts{grid-template-columns:1fr}.st-grid{grid-template-columns:1fr}.st-grid>div+div{border-left:0;border-top:1px solid var(--c-line)}}
+@media (prefers-reduced-motion: reduce){.fl-pipe i{animation:none;opacity:0}.donut .arc,.donut .arc2{transition:none}}
+
+.btn-glow{position:relative;overflow:hidden;isolation:isolate;animation:glow 2.8s ease-in-out infinite}
+.btn-glow::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:45%;z-index:-1;background:linear-gradient(100deg,transparent,rgba(255,255,255,.6),transparent);transform:skewX(-18deg);animation:sheen 4.5s ease-in-out 1.2s infinite}
+.btn-glow:hover{box-shadow:0 0 0 6px rgba(200,241,105,.22),0 14px 36px rgba(200,241,105,.45);animation-play-state:paused}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(200,241,105,.6),0 0 22px 2px rgba(200,241,105,.35)}60%{box-shadow:0 0 0 12px rgba(200,241,105,0),0 0 36px 6px rgba(200,241,105,.55)}}
+@keyframes sheen{0%,70%{left:-60%}100%{left:130%}}
+@media (prefers-reduced-motion: reduce){.btn-glow{animation:none;box-shadow:0 10px 30px rgba(200,241,105,.3)}.btn-glow::after{display:none}}
+.sticky-cta{position:fixed;left:50%;bottom:20px;z-index:60;display:flex;align-items:center;gap:16px;padding:10px 10px 10px 20px;background:var(--c-deep);color:#eef7e2;border-radius:14px;box-shadow:var(--sh-3);
+  transform:translate(-50%,140%);opacity:0;transition:transform 420ms var(--ease),opacity 420ms var(--ease);max-width:calc(100% - 24px)}
+.sticky-cta.show{transform:translate(-50%,0);opacity:1}
+.sticky-cta p{font-size:15px;font-weight:600}
+.sticky-cta .x{width:44px;height:44px;flex:none;border:0;border-radius:10px;background:transparent;color:#cfe2b8;cursor:pointer;display:grid;place-items:center}
+.sticky-cta .x:hover{background:rgba(255,255,255,.08);color:#fff}
+.sticky-cta .x svg{width:18px;height:18px}
+.sticky-cta :focus-visible{outline-color:var(--c-brand)}
+body.leaving main,body.leaving .nav,body.leaving footer{opacity:0;transform:translateY(-6px);transition:opacity 260ms var(--ease),transform 260ms var(--ease)}
+@media (max-width:900px){.cmp-grid{grid-template-columns:1fr}}
+@media (max-width:640px){
+  .bar{grid-template-columns:86px 1fr 54px;gap:8px}
+  .case .row2{grid-template-columns:1fr}.case .col+.col{border-left:0;border-top:1px solid var(--c-line)}
+  .sticky-cta{left:12px;right:12px;bottom:12px;transform:translateY(140%);max-width:none}
+  .sticky-cta.show{transform:none}
+  .sticky-cta p{font-size:14px}
+  .btn-lg{width:100%}
+}
+@media (prefers-reduced-motion: reduce){
+  .map .pin,.map .ring{animation:none}
+  .hero h1 .hl{background-size:100% 100%;transition:none}
+  .bar .fl{transition:none}
+  .tilt{transform:none!important}
+}
+.sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+table.sr{display:block}
+
+:root{--serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;--lime:#c8f169;--lime-2:#e9fbc4;--ink-dark:#0f1a08}
+body{font-weight:500}
+h1,h2,h3{font-weight:600}
+.it{font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:-.01em}
+.nav{position:fixed;top:14px;left:0;right:0;background:transparent;border:0;pointer-events:none}
+.nav-in{pointer-events:auto;max-width:980px;margin:0 auto;display:flex;align-items:center;gap:18px;height:60px;padding:0 8px 0 16px;border-radius:14px;
+  background:rgba(15,26,8,.55);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);border:1px solid rgba(255,255,255,.14);
+  transition:background 300ms var(--ease),box-shadow 300ms var(--ease),border-color 300ms var(--ease)}
+.nav.solid .nav-in{background:rgba(255,255,255,.92);border-color:var(--c-line);box-shadow:var(--sh-2)}
+.nav .brand img{height:30px}
+.nav .wm{font-size:20px;color:#fff;transition:color 300ms}
+.nav .wm span{color:var(--lime)}
+.nav.solid .wm{color:var(--c-deep)}.nav.solid .wm span{color:var(--c-brand-600)}
+.nav nav{display:flex;gap:2px;margin-left:6px}
+.nav nav a{color:rgba(255,255,255,.86);min-height:44px;padding:0 12px;font-size:14px;border-radius:8px}
+.nav nav a:hover{color:#fff;background:rgba(255,255,255,.1)}
+.nav.solid nav a{color:var(--c-ink-2)}.nav.solid nav a:hover{color:var(--c-ink);background:var(--c-surface-2)}
+.nav .act{margin-left:auto;display:flex;align-items:center;gap:6px}
+.nlink{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;font-size:14px;font-weight:600;text-decoration:none;color:#fff;border-radius:8px}
+.nlink:hover{background:rgba(255,255,255,.1)}
+.nav.solid .nlink{color:var(--c-ink)}.nav.solid .nlink:hover{background:var(--c-surface-2)}
+.nav .btn-primary{background:var(--lime);color:var(--ink-dark)}
+.nav .btn-primary:hover{background:#b6e74a}
+.menu-btn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff}
+.nav.solid .menu-btn{background:var(--c-surface);border-color:var(--c-line);color:var(--c-ink)}
+.mnav{pointer-events:auto;max-width:980px;margin:8px auto 0;border-radius:14px;border:1px solid var(--c-line);box-shadow:var(--sh-2)}
+.nav :focus-visible{outline-color:var(--lime)}.nav.solid :focus-visible{outline-color:var(--c-brand-ink)}
+
+.hero{position:relative;overflow:hidden;min-height:max(640px,92vh);padding:130px 0 72px;color:#fff;display:flex;align-items:center;
+  background:radial-gradient(1200px 600px at 70% 20%,#3c6a1c 0%,transparent 60%),radial-gradient(900px 700px at 10% 100%,#20400c 0%,transparent 60%),linear-gradient(180deg,#152a0a 0%,#0f1d07 100%)}
+
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(10,18,5,.6));pointer-events:none}
+.hero-in{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:48px;align-items:center;width:100%}
+
+.hero h1{margin-top:0;font-size:clamp(40px,5.2vw,68px);line-height:1.02;letter-spacing:-.045em;color:#fff;font-weight:600}
+.hero h1 .it{color:var(--lime);font-size:1.04em}
+.hero .lead{color:rgba(255,255,255,.86);max-width:560px;font-size:18px}
+.hero .cta{margin-top:28px}
+.btn-primary{background:var(--lime);color:var(--ink-dark)}
+.btn-primary:hover{background:#b6e74a}
+.btn-ghost{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.3)}
+.btn-ghost:hover{background:rgba(255,255,255,.16);border-color:#fff}
+.hero .cta-note{color:rgba(255,255,255,.72)}
+.hero :focus-visible{outline-color:var(--lime)}
+.hero-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.glass{grid-column:span 1;border-radius:16px;padding:18px;background:rgba(20,38,10,.62);border:1px solid rgba(255,255,255,.18);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.glass.big{grid-column:span 3}
+@media (min-width:1100px){.glass.big{grid-column:span 1}.hero-stats{grid-template-columns:1fr 1fr}.glass.big:nth-child(1){grid-column:1}.glass.big:nth-child(2){grid-column:2}.mini{grid-column:span 1}.hero-stats .mini:nth-child(5){grid-column:1/-1}}
+.glass .n{font-size:clamp(34px,3.6vw,46px);font-weight:600;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.glass p{margin-top:10px;font-size:13px;color:rgba(255,255,255,.8);line-height:1.4}
+.mini{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:12px;background:rgba(15,29,7,.72);border:1px solid rgba(255,255,255,.12);border-left:3px solid var(--lime);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.mini b{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.mini>span{font-size:12px;color:rgba(255,255,255,.75);line-height:1.35}
+
+.logos{padding:34px 0 26px;background:var(--c-surface);border-bottom:1px solid var(--c-line)}
+.logos p{text-align:center;font-size:13px;color:var(--c-ink-3);font-weight:600}
+.marquee{margin-top:18px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+.track{display:flex;gap:48px;width:max-content;animation:marq 38s linear infinite}
+.marquee:hover .track,.marquee:focus-within .track{animation-play-state:paused}
+.track span{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:16px;color:var(--c-ink-2);white-space:nowrap;letter-spacing:-.01em}
+.track svg{width:20px;height:20px;color:var(--c-deep)}
+@keyframes marq{to{transform:translateX(-50%)}}
+
+.sec-h{max-width:none;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);grid-template-areas:"tag ." "h p";column-gap:56px;align-items:end;margin-bottom:40px}
+.sec-h .tag{grid-area:tag;justify-self:start}
+.sec-h h2{grid-area:h;font-size:clamp(30px,3.6vw,46px);letter-spacing:-.035em;line-height:1.08;font-weight:600}
+.sec-h p{grid-area:p;margin-top:0;font-size:15px;color:var(--c-ink-2)}
+.sec-h h2 .it{color:var(--c-brand-ink)}
+
+.why-sec{background:var(--c-surface)}
+.ills{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.ill{margin:0;position:relative;border-radius:18px;overflow:hidden;aspect-ratio:300/380;background:var(--c-surface-2);transition:transform 500ms var(--ease)}
+.ill svg{position:absolute;inset:0;width:100%;height:100%;transition:transform 900ms var(--ease)}
+.ill:hover svg{transform:scale(1.04)}
+.ill figcaption{position:absolute;left:12px;right:12px;bottom:12px;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.92);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);font-size:13px;color:var(--c-ink-2);line-height:1.45}
+.ill figcaption b{display:block;font-size:16px;color:var(--c-ink);margin-bottom:2px}
+.ill-map .sweep{transform-origin:150px 170px;animation:pulse 3.6s var(--ease) infinite}
+@keyframes pulse{0%{transform:scale(.3);opacity:0}30%{opacity:1}100%{transform:scale(1.15);opacity:0}}
+.ill-map .dots circle{transform-box:fill-box;transform-origin:center;animation:pinIn 500ms var(--ease) both}
+.in .ill-map .dots circle:nth-child(2){animation-delay:.15s}.in .ill-map .dots circle:nth-child(3){animation-delay:.3s}.in .ill-map .dots circle:nth-child(4){animation-delay:.45s}.in .ill-map .dots circle:nth-child(5){animation-delay:.6s}
+.ill-doc .hl1,.ill-doc .hl2{transform-box:fill-box;transform-origin:left center;transform:scaleX(0);transition:transform 900ms var(--ease) 400ms}
+.ill-doc .hl2{transition-delay:900ms}
+.ill.in .ill-doc .hl1,.ill.in .ill-doc .hl2{transform:none}
+.ill-doc .tagf{opacity:0;transform:translate(170px,320px);transition:opacity 500ms var(--ease) 1.3s,transform 500ms var(--ease) 1.3s}
+.ill.in .ill-doc .tagf{opacity:1;transform:translate(170px,300px)}
+.ill-bars .bars rect{transform-box:fill-box;transform-origin:bottom;transform:scaleY(0);transition:transform 900ms var(--ease)}
+.ill.in .ill-bars .bars rect{transform:none}
+.ill-bars .bars rect:nth-child(2){transition-delay:.1s}.ill-bars .bars rect:nth-child(3){transition-delay:.2s}.ill-bars .bars rect:nth-child(4){transition-delay:.3s}.ill-bars .bars rect:nth-child(5){transition-delay:.4s}
+.ill-bars .band{transform-box:fill-box;transform-origin:bottom;transform:scaleY(0);transition:transform 900ms var(--ease) .2s}
+.ill.in .ill-bars .band{transform:none}
+.ill-bars .lab{opacity:0;transition:opacity 500ms var(--ease) 1.1s}.ill.in .ill-bars .lab{opacity:1}
+.ill-bars .bars rect:nth-child(6){transition-delay:.5s}.ill-bars .bars rect:nth-child(7){transition-delay:.6s}
+
+.feats{list-style:none;margin:28px 0 0;padding:0;display:grid;gap:10px;position:relative}
+.feat{display:grid;grid-template-columns:52px minmax(0,1fr) minmax(0,.9fr);align-items:center;gap:18px;padding:16px 22px;border-radius:14px;background:var(--c-surface-2);
+  transition:background 420ms var(--ease),transform 420ms var(--ease);cursor:default;outline-offset:2px}
+.feat .fic{width:44px;height:44px;border-radius:10px;background:var(--c-surface);display:grid;place-items:center;color:var(--c-deep);transition:background 420ms var(--ease)}
+.feat .fic svg{width:20px;height:20px}
+.feat h3{font-size:clamp(22px,2.6vw,32px);letter-spacing:-.03em;font-weight:500}
+.feat ul{margin:0;padding:0 0 0 16px;font-size:13px;color:var(--c-ink-2);display:grid;gap:2px}
+.feat.on{background:var(--lime);transform:translateX(6px)}
+.feat.on .fic{background:#fff}
+.feat.on ul{color:#2a3a14}
+.feat-card{position:absolute;left:46%;top:0;width:110px;pointer-events:none;opacity:0;transform:translateY(0) rotate(8deg);transition:transform 520ms var(--ease),opacity 300ms var(--ease);filter:drop-shadow(0 16px 24px rgba(0,0,0,.25))}
+.feat-card.show{opacity:1}
+.feat-card svg{width:100%;height:auto}
+
+@media (max-width:1040px){.nav nav{display:none}}
+@media (max-width:900px){
+  .hero{min-height:auto;padding:110px 0 48px}
+  .hero-in{grid-template-columns:1fr;gap:28px}
+  .sec-h{grid-template-columns:1fr;grid-template-areas:"tag" "h" "p";row-gap:14px}
+  .ills{grid-template-columns:1fr 1fr}
+  .ills .ill:last-child{grid-column:1/-1;aspect-ratio:16/10}
+  .feat{grid-template-columns:44px 1fr;gap:12px}
+  .feat ul{grid-column:1/-1}
+  .feat-card{display:none}
+  .feat.on{transform:none}
+}
+@media (max-width:640px){
+  .nav{top:8px;padding:0 8px}
+  .nav .act{display:none}
+  .hero-stats{grid-template-columns:1fr 1fr}
+  .glass.big{grid-column:span 1}
+  .hero-stats .mini:nth-child(5){grid-column:1/-1}
+  .ills{grid-template-columns:1fr}
+  .ills .ill,.ills .ill:last-child{aspect-ratio:4/3}
+  .ill svg{object-fit:cover}
+  .feat h3{font-size:22px}
+}
+@media (prefers-reduced-motion: reduce){
+  .track,.ill-map .sweep{animation:none}
+  .ill-doc .hl1,.ill-doc .hl2,.ill-bars .bars rect{transform:none}
+  .ill-doc .tagf{opacity:1;transform:translate(170px,300px)}
+  .feat,.feat-card{transition:none}
+  .track{flex-wrap:wrap;width:auto;justify-content:center;gap:16px 32px}.track span[aria-hidden]{display:none}
+}
+</style>
+</head>
+<body class="no-js">
+<a class="skip" href="#main">Przejdź do treści</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12Z"/><circle cx="12" cy="9" r="2.5"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M7 21h10M5 7h14"/><path d="m5 7-3 6a3 3 0 0 0 6 0Zm14 0-3 6a3 3 0 0 0 6 0Z"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-db" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol>
+    <symbol id="i-scan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M8 10h8M8 14h5"/></symbol>
+    <symbol id="i-sheet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3Z"/></symbol>
+    <symbol id="i-offline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+    <symbol id="i-export" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  </defs>
+</svg>
+
+<header class="nav" id="nav">
+  <div class="nav-in">
+    <a class="brand" href="#top" aria-label="BidRadar – strona główna">
+      <img src="/static/logo.png" alt="" width="40" height="30">
+      <span class="wm">Bid<span>Radar</span></span>
+    </a>
+    <nav aria-label="Sekcje strony">
+      <a href="#dlaczego">Dlaczego</a>
+      <a href="#porownanie">Wyniki</a>
+      <a href="#jak-dziala">Jak to działa</a>
+      <a href="#zrodla">Źródła</a>
+      <a href="#pytania">Pytania</a>
+    </nav>
+    <div class="act">
+      <a class="nlink" data-href="expert" href="/">Zaloguj się</a>
+      <a class="btn btn-primary btn-sm" data-href="app" href="/">Otwórz panel</a>
+    </div>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mnav" aria-label="Pokaż menu"><svg><use href="#i-menu"/></svg></button>
+  </div>
+  <div class="mnav" id="mnav">
+    <a href="#dlaczego">Dlaczego</a>
+    <a href="#porownanie">Wyniki</a>
+    <a href="#jak-dziala">Jak to działa</a>
+    <a href="#zrodla">Źródła</a>
+    <a href="#pytania">Pytania</a>
+    <a class="btn btn-primary" data-href="app" href="/">Otwórz panel</a>
+    <a class="btn btn-line" data-href="expert" href="/">Zaloguj się jako ekspert</a>
+  </div>
+</header>
+
+<main id="main">
+
+<div class="hero" id="top">
+  <div class="wrap hero-in">
+    <div class="hero-copy">
+      <h1>Ryzyka inwestycji publicznych, <span class="it">zanim ogłosisz przetarg</span></h1>
+      <p class="lead">Wskaż gminę na mapie albo wklej opis projektu. Zobaczysz podobne zakończone inwestycje, realne przedziały opóźnień i kosztów oraz czerwone flagi, a każda liczba prowadzi do ogłoszenia w BZP.</p>
+      <div class="cta">
+        <a class="btn btn-primary btn-lg btn-glow" data-href="app" href="/">Otwórz panel</a>
+        <a class="btn btn-ghost btn-lg" href="#porownanie">Zobacz wyniki</a>
+      </div>
+      <p class="cta-note">Bez zakładania konta. Mapa, projekty i analiza nowej inwestycji działają od razu.</p>
+    </div>
+    <div class="hero-stats">
+      <div class="glass big rv"><div class="n"><span data-count="93.3" data-suffix="%">93,3%</span></div><p>trafnych wyszukań postępowania w BZP bez numeru ogłoszenia</p></div>
+      <div class="glass big rv"><div class="n"><span data-count="14">14</span>/<span data-count="22">22</span></div><p>projektów połączonych automatycznie, z podwójnym potwierdzeniem</p></div>
+      <div class="mini rv"><b data-count="53">53</b><span>zdarzenia ryzyka z cytatem</span></div>
+      <div class="mini rv"><b><span data-count="6" data-suffix=" s">6 s</span></b><span>import <span data-count="22">22</span> projektów z BZP</span></div>
+      <div class="mini rv"><b>0</b><span>projektów bez dopasowania</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="logos" aria-labelledby="h-logos">
+  <p id="h-logos">Dane pobieramy automatycznie z publicznych rejestrów</p>
+  <div class="marquee"><div class="track">
+    <span><svg><use href="#i-db"/></svg>Biuletyn Zamówień Publicznych</span><span><svg><use href="#i-globe"/></svg>TED · Dziennik Urzędowy UE</span>
+    <span><svg><use href="#i-sheet"/></svg>e-Zamówienia</span><span><svg><use href="#i-doc"/></svg>Rejestry projektów KPO</span>
+    <span><svg><use href="#i-pin"/></svg>OpenStreetMap</span><span><svg><use href="#i-scan"/></svg>Dokumenty gmin z OCR</span><span><svg><use href="#i-globe"/></svg>GADM · Natural Earth</span>
+    <span aria-hidden="true"><svg><use href="#i-db"/></svg>Biuletyn Zamówień Publicznych</span><span aria-hidden="true"><svg><use href="#i-globe"/></svg>TED · Dziennik Urzędowy UE</span>
+    <span aria-hidden="true"><svg><use href="#i-sheet"/></svg>e-Zamówienia</span><span aria-hidden="true"><svg><use href="#i-doc"/></svg>Rejestry projektów KPO</span>
+    <span aria-hidden="true"><svg><use href="#i-pin"/></svg>OpenStreetMap</span><span aria-hidden="true"><svg><use href="#i-scan"/></svg>Dokumenty gmin z OCR</span><span aria-hidden="true"><svg><use href="#i-globe"/></svg>GADM · Natural Earth</span>
+  </div></div>
+</div>
+
+<section id="dlaczego" aria-labelledby="h-why" class="why-sec">
+  <div class="wrap">
+    <div class="sec-h rv">
+      <h2 id="h-why">Wszystko o ryzyku inwestycji, <span class="it">na jednej mapie</span></h2>
+      <p>Kliknij gminę albo wklej opis projektu. W kilka sekund zobaczysz zakończone inwestycje z okolicy, ich opóźnienia i koszty, czerwone flagi i rekomendowane zapisy umowne. Bez arkuszy i ręcznego przeszukiwania BZP, z linkiem do każdego źródła.</p>
+    </div>
+    <div class="ills">
+      <figure class="ill rv" aria-labelledby="ill1">
+        <svg viewBox="0 0 300 380" aria-hidden="true" class="ill-map">
+          <rect width="300" height="380" fill="#dfeccc"/>
+          <g class="grid" stroke="#c9dcae" stroke-width="1"><path d="M0 20H300"/><path d="M0 60H300"/><path d="M0 100H300"/><path d="M0 140H300"/><path d="M0 180H300"/><path d="M0 220H300"/><path d="M0 260H300"/><path d="M0 300H300"/><path d="M0 340H300"/><path d="M20 0V380"/><path d="M60 0V380"/><path d="M100 0V380"/><path d="M140 0V380"/><path d="M180 0V380"/><path d="M220 0V380"/><path d="M260 0V380"/></g>
+          <circle class="sweep" cx="150" cy="170" r="120" fill="url(#sw)"/>
+          <defs><radialGradient id="sw"><stop offset="0" stop-color="#8fd11f" stop-opacity=".0"/><stop offset=".7" stop-color="#8fd11f" stop-opacity=".18"/><stop offset="1" stop-color="#8fd11f" stop-opacity="0"/></radialGradient></defs>
+          <circle cx="150" cy="170" r="120" fill="none" stroke="#7dbb12" stroke-dasharray="4 6"/><circle cx="150" cy="170" r="70" fill="none" stroke="#7dbb12" stroke-dasharray="4 6"/>
+          <g class="dots"><circle cx="110" cy="130" r="7" fill="#237047"/><circle cx="200" cy="150" r="7" fill="#c98a1a"/><circle cx="170" cy="230" r="7" fill="#c0392b"/><circle cx="95" cy="215" r="7" fill="#237047"/><circle cx="215" cy="95" r="7" fill="#c98a1a"/><circle cx="150" cy="170" r="10" fill="#2d5a0e" stroke="#fff" stroke-width="3"/></g>
+        </svg>
+        <figcaption id="ill1"><b>Interaktywna mapa ryzyk</b>Wskaż gminę, narysuj obszar albo ustaw promień. Pinezki pokazują kondycję zakończonych umów w okolicy.</figcaption>
+      </figure>
+      <figure class="ill rv" aria-labelledby="ill2">
+        <svg viewBox="0 0 300 380" aria-hidden="true" class="ill-doc">
+          <rect width="300" height="380" fill="#2d5a0e"/>
+          <g transform="translate(46 40) rotate(-4)"><rect width="208" height="290" rx="8" fill="#fff"/>
+            <g fill="#dfe6d6"><rect x="22" y="28" width="120" height="10" rx="3"/><rect x="22" y="58" width="164" height="7" rx="3"/><rect x="22" y="74" width="150" height="7" rx="3"/><rect x="22" y="90" width="160" height="7" rx="3"/>
+            <rect x="22" y="152" width="158" height="7" rx="3"/><rect x="22" y="168" width="130" height="7" rx="3"/><rect x="22" y="210" width="160" height="7" rx="3"/><rect x="22" y="226" width="110" height="7" rx="3"/></g>
+            <rect class="hl1" x="18" y="112" width="172" height="26" rx="4" fill="#d9efb0"/><rect x="26" y="121" width="140" height="7" rx="3" fill="#3d6b00"/>
+            <rect class="hl2" x="18" y="244" width="120" height="22" rx="4" fill="#fdf3e1"/><rect x="26" y="251" width="92" height="7" rx="3" fill="#96600f"/></g>
+          <g class="tagf" transform="translate(170 300)"><rect width="104" height="30" rx="4" fill="#8fd11f"/><text x="12" y="20" font-family="Manrope,sans-serif" font-size="13" font-weight="700" fill="#16220a">pole 5.3 · cytat</text></g>
+        </svg>
+        <figcaption id="ill2"><b>Analiza nowej inwestycji</b>Wgraj opis, PDF albo skan. Dostajesz fakty z cytatem, luki w opisie i ryzyka do sprawdzenia przed przetargiem.</figcaption>
+      </figure>
+      <figure class="ill rv" aria-labelledby="ill3">
+        <svg viewBox="0 0 300 380" aria-hidden="true" class="ill-bars">
+          <rect width="300" height="380" fill="#f1f9e2"/>
+          <text x="26" y="40" font-family="Manrope,sans-serif" font-size="12" font-weight="700" fill="#535e47">Ile podobnych umów zmieniło koszt o…</text>
+          <path d="M26 62h22" stroke="#c0392b" stroke-width="2" stroke-dasharray="6 4"/><text x="54" y="66" font-family="Manrope,sans-serif" font-size="12" font-weight="800" fill="#c0392b">mediana +3,2%</text>
+          <rect x="152" y="56" width="14" height="10" fill="#8fd11f" opacity=".35"/><text x="172" y="66" font-family="Manrope,sans-serif" font-size="12" font-weight="700" fill="#3d6b00">P25–P75</text>
+          <g stroke="#dbe7c6" stroke-width="1"><path d="M40 122H276M40 162H276M40 202H276"/></g>
+          <rect class="band" x="84" y="88" width="74" height="134" fill="#8fd11f" opacity=".2"/>
+          <g class="bars"><rect x="46" y="192" width="26" height="30" rx="3" fill="#b5df6c"/><rect x="78" y="102" width="26" height="120" rx="3" fill="#3d6b00"/><rect x="110" y="140" width="26" height="82" rx="3" fill="#7dbb12"/><rect x="142" y="166" width="26" height="56" rx="3" fill="#7dbb12"/><rect x="174" y="188" width="26" height="34" rx="3" fill="#b5df6c"/><rect x="206" y="202" width="26" height="20" rx="3" fill="#d9efb0"/><rect x="238" y="208" width="26" height="14" rx="3" fill="#d9efb0"/></g>
+          <line x1="40" y1="222" x2="276" y2="222" stroke="#9fb886" stroke-width="2"/>
+          <path class="med" d="M112 88V222" stroke="#c0392b" stroke-width="2" stroke-dasharray="6 5"/>
+          <g font-family="Manrope,sans-serif" font-size="10" font-weight="600" fill="#626b58"><text x="59" y="238" text-anchor="middle">−5</text><text x="91" y="238" text-anchor="middle">0</text><text x="123" y="238" text-anchor="middle">+5</text><text x="155" y="238" text-anchor="middle">+10</text><text x="187" y="238" text-anchor="middle">+15</text><text x="219" y="238" text-anchor="middle">+20</text><text x="251" y="238" text-anchor="middle">+30</text></g>
+          <text x="158" y="256" text-anchor="middle" font-family="Manrope,sans-serif" font-size="10" font-weight="600" fill="#626b58">zmiana kosztu [%]</text>
+        </svg>
+        <figcaption id="ill3"><b>Realne przedziały kosztów</b>Mediana i rozrzut z setek podobnych umów, z liczebnością próby. Wiesz, na jaki wzrost kosztu się przygotować.</figcaption>
+      </figure>
+    </div>
+
+    <ul class="feats" id="feats">
+      <li class="feat" tabindex="0"><span class="fic"><svg><use href="#i-search"/></svg></span><h3>Wyszukiwanie w źródle</h3>
+        <ul><li>Łączenie po numerze BZP, OCID i NIP</li><li>Dopasowanie po nazwie z poziomem pewności</li><li>93,3% trafnych wyszukań bez numeru</li></ul></li>
+      <li class="feat" tabindex="0"><span class="fic"><svg><use href="#i-scale"/></svg></span><h3>Grupa porównawcza</h3>
+        <ul><li>26 842 zakończone umowy wod-kan</li><li>Podsektor, wartość, region, formuła</li><li>Mediana i percentyle z liczebnością</li></ul></li>
+      <li class="feat" tabindex="0"><span class="fic"><svg><use href="#i-doc"/></svg></span><h3>Dokumenty i cytaty</h3>
+        <ul><li>DOCX, PDF, skany z OCR, ODT, RTF</li><li>Fakty sprawdzane krzyżowo z BZP</li><li>Ponowna analiza po nowym dokumencie</li></ul></li>
+      <li class="feat" tabindex="0"><span class="fic"><svg><use href="#i-shield"/></svg></span><h3>Decyzja eksperta</h3>
+        <ul><li>Zatwierdź, popraw, odrzuć z komentarzem</li><li>Przyczyny, skutki i działania zaradcze</li><li>Historia: kto, kiedy, co zmienił</li></ul></li>
+      <li class="feat" tabindex="0"><span class="fic"><svg><use href="#i-clock"/></svg></span><h3>Monitorowanie projektów</h3>
+        <ul><li>Nowe ogłoszenia sprawdzane co 6 godzin</li><li>Zmiana umowy trafia od razu do kolejki</li><li>Raporty .docx, PDF, JSON i CSV</li></ul></li>
+      <li class="feat-card" aria-hidden="true"><svg viewBox="0 0 120 150"><rect width="120" height="150" rx="10" fill="#2d5a0e"/><g stroke="#8fd11f" stroke-width="3" opacity=".55"><path d="M-10 40L60 -10M-10 70L90 0M-10 100L120 10M-10 130L130 30M10 150L130 60M40 160L130 90M70 170L130 120"/></g><rect x="14" y="100" width="92" height="34" rx="6" fill="#8fd11f"/><text x="24" y="122" font-family="Manrope,sans-serif" font-size="13" font-weight="800" fill="#16220a">BidRadar</text></svg></li>
+    </ul>
+  </div>
+</section>
+
+<section id="porownanie" aria-labelledby="h-cmp">
+  <div class="wrap">
+    <div class="sec-h rv">
+      <span class="tag t-src">Case study</span>
+      <h2 id="h-cmp">Od rekordu projektu do raportu, <span class="it">w kilka sekund</span></h2>
+      <p>Sprawdziliśmy BidRadar na 22 projektach wodno-kanalizacyjnych i 26 842 zakończonych umowach z BZP. Tak rosną i przepływają dane: z pojedynczego rekordu powstaje pełny obraz inwestycji.</p>
+    </div>
+    <div class="donuts">
+      <figure class="donut rv" data-v="93.3" style="--c:#3d6b00"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="tr" cx="60" cy="60" r="50"/><circle class="arc" cx="60" cy="60" r="50"/></svg>
+        <div class="dv"><b data-to="93.3">93,3</b><span>%</span></div><figcaption>postępowań odnalezionych w BZP bez podanego numeru ogłoszenia</figcaption></figure>
+      <figure class="donut two rv" data-v="63.6" data-v2="36.4" style="--c:#3d6b00;--c2:#e0a83a"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="tr" cx="60" cy="60" r="50"/><circle class="arc" cx="60" cy="60" r="50"/><circle class="arc2" cx="60" cy="60" r="50"/></svg>
+        <div class="dv"><b data-to="100">100</b><span>%</span></div><figcaption>projektów z dopasowaniem: <i class="k1"></i>64% automatycznie, <i class="k2"></i>36% po decyzji eksperta</figcaption></figure>
+      <figure class="donut rv" data-v="79.9" style="--c:#1d5d99"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="tr" cx="60" cy="60" r="50"/><circle class="arc" cx="60" cy="60" r="50"/></svg>
+        <div class="dv"><b data-to="79.9">79,9</b><span>%</span></div><figcaption>rzeczywistych kosztów nowych umów mieści się w przedziale podanym przez BidRadar</figcaption></figure>
+      <figure class="donut rv" data-v="74" style="--c:#c0392b"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="tr" cx="60" cy="60" r="50"/><circle class="arc" cx="60" cy="60" r="50"/></svg>
+        <div class="dv"><b data-to="74">74</b><span>%</span></div><figcaption>umów w projektach z bazy skończyło się po terminie (n = 31), średnio +10,2% kosztu</figcaption></figure>
+    </div>
+
+    <div class="flow rv" aria-label="Przepływ danych w BidRadar">
+      <div class="fl-node"><b data-to="22">22</b><span>projekty z rejestru</span></div>
+      <div class="fl-pipe" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="fl-node"><b data-to="99">99</b><span>ogłoszeń w BZP</span></div>
+      <div class="fl-pipe" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="fl-node"><b data-to="31">31</b><span>umów z wykonaniem</span></div>
+      <div class="fl-pipe" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="fl-node"><b data-to="53">53</b><span>zdarzenia ryzyka z cytatem</span></div>
+      <div class="fl-pipe" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="fl-node end"><b>1</b><span>raport .docx, PDF, JSON</span></div>
+    </div>
+
+    <article class="story rv">
+      <div class="st-h"><span class="tag t-warn">R07 roboty dodatkowe</span><h3>Gmina Czernikowo: sieć wodociągowa</h3></div>
+      <div class="st-grid">
+        <div><small>Wejście</small><b>Rekord projektu</b><p>Nazwa, odbiorca i NIP. Bez numeru ogłoszenia.</p></div>
+        <div><small>BidRadar odnalazł</small><b>2024/BZP 00349631</b><p>Po NIP i przedmiocie zamówienia, z kompletem ogłoszeń postępowania.</p></div>
+        <div><small>Koszt</small><b class="bad">+40,3%</b><p>2,13 mln zł w umowie, 2,99 mln zł wypłacone.</p></div>
+        <div><small>Termin</small><b class="bad">+277 dni</b><p>Przyczyna z ogłoszenia o zmianie: rozszerzony zakres robót wobec PFU.</p></div>
+      </div>
+      <p class="st-f">Wniosek dla nowej inwestycji: zweryfikuj kompletność PFU przed przetargiem i zaplanuj rezerwę na roboty dodatkowe. Każda liczba powyżej prowadzi do ogłoszenia w BZP.</p>
+    </article>
+  </div>
+</section>
+
+<section id="jak-dziala" aria-labelledby="h-how">
+  <div class="wrap">
+    <div class="sec-h rv">
+      <span class="tag t-brand">Trzy kroki do raportu</span>
+      <h2 id="h-how">Od miejsca na mapie do gotowego raportu</h2>
+      <p>Nie musisz znać struktury ogłoszeń ani pisać zapytań. BidRadar sam pobiera i łączy dane, a Ty oceniasz wynik.</p>
+    </div>
+    <div class="steps">
+      <article class="step rv tilt">
+        <div class="num">1</div>
+        <h3>Wskaż miejsce albo opisz projekt</h3>
+        <p>Kliknij gminę na mapie, narysuj obszar, wpisz współrzędne albo wgraj opis inwestycji.</p>
+        <ul>
+          <li><svg><use href="#i-check"/></svg>DOCX, PDF (także skany), TXT, XLSX, CSV</li>
+          <li><svg><use href="#i-check"/></svg>Opis tekstem prosto w formularzu</li>
+        </ul>
+      </article>
+      <article class="step rv tilt">
+        <div class="num">2</div>
+        <h3>BidRadar łączy dane i szuka podobnych</h3>
+        <p>Łączy projekt z postępowaniem, ogłoszeniami, umowami i ich zmianami. Potem dobiera zakończone inwestycje o podobnych cechach.</p>
+        <ul>
+          <li><svg><use href="#i-check"/></svg>Numer BZP, OCID, numer KPO, NIP</li>
+          <li><svg><use href="#i-check"/></svg>Podsektor, formuła, wartość, region</li>
+        </ul>
+      </article>
+      <article class="step rv tilt">
+        <div class="num">3</div>
+        <h3>Ekspert ocenia i pobiera raport</h3>
+        <p>Dostajesz przedziały odchyleń, czerwone flagi i rekomendowane zapisy umowne. Zatwierdzasz, poprawiasz albo odrzucasz każdy wniosek.</p>
+        <ul>
+          <li><svg><use href="#i-check"/></svg>Raport do PDF i HTML, dane do JSON i CSV</li>
+          <li><svg><use href="#i-check"/></svg>Historia decyzji: kto, kiedy i co zmienił</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="wiarygodnosc" aria-labelledby="h-trust">
+  <div class="wrap">
+    <div class="sec-h rv">
+      <span class="tag t-brand">Wiarygodność</span>
+      <h2 id="h-trust">Zawsze wiesz, skąd jest liczba</h2>
+      <p>Każdy wniosek należy do jednej z trzech warstw. Oznaczamy je kolorem i podpisem, żeby nie dało się ich pomylić.</p>
+    </div>
+    <div class="layers">
+      <article class="layer rv tilt" style="--lc:var(--c-src)">
+        <span class="tag t-src"><svg><use href="#i-doc"/></svg>Dane źródłowe</span>
+        <h3>Tak jest w dokumencie</h3>
+        <p>Wartość przepisana z ogłoszenia albo dokumentu, z numerem pola lub stroną i dosłownym cytatem.</p>
+        <div class="ex"><b>Pole 5.3</b> ogłoszenia o wykonaniu umowy: „Nie” (umowa nie została wykonana w terminie).</div>
+      </article>
+      <article class="layer rv tilt" style="--lc:var(--c-calc)">
+        <span class="tag t-calc"><svg><use href="#i-scale"/></svg>Obliczenia</span>
+        <h3>Tak wynika ze statystyki</h3>
+        <p>Mediana, rozrzut i liczebność próby. Nigdy nie porównujemy kwot netto z kwotami brutto.</p>
+        <div class="ex">Grupa porównawcza: <b>114 umów</b>, podsektor „Sieć wodociągowa”, wartość 4,7–42,4 mln zł.</div>
+      </article>
+      <article class="layer rv tilt" style="--lc:var(--c-exp)">
+        <span class="tag t-exp"><svg><use href="#i-shield"/></svg>Decyzja eksperta</span>
+        <h3>Tak ocenił człowiek</h3>
+        <p>Reguły przypisują zdarzenie do katalogu R01–R15. Ekspert zatwierdza, poprawia albo odrzuca, a decyzja zostaje w historii.</p>
+        <div class="ex">Status <b>„propozycja”</b> do czasu, aż ekspert ją zatwierdzi, z nazwiskiem i godziną.</div>
+      </article>
+    </div>
+
+    <div class="chain-wrap" style="margin-top:56px">
+      <div class="rv">
+        <h3 style="font-size:24px">Ryzyko opisane tak, żeby dało się na nie zareagować</h3>
+        <p style="margin-top:12px;color:var(--c-ink-2)">Każde zdarzenie zapisujemy w tym samym układzie. Dzięki temu łatwo porównać przypadki i przenieść wnioski do nowego projektu.</p>
+        <ul class="chk">
+          <li><svg><use href="#i-check"/></svg><span><b>Jawne reguły</b> wykrywają opóźnienia, wzrost kosztu, nienależyte wykonanie, zmiany z art. 455 Pzp i małą liczbę ofert.</span></li>
+          <li><svg><use href="#i-check"/></svg><span><b>Niepewność widać od razu:</b> każdy wniosek ma pewność wysoką, średnią albo niską i liczebność próby.</span></li>
+          <li><svg><use href="#i-check"/></svg><span><b>Braki danych mają nazwę:</b> „brak w paczce”, „dokument nie wspomina”, „brak potwierdzenia”.</span></li>
+        </ul>
+      </div>
+      <article class="chain rv" aria-label="Przykład zdarzenia ryzyka z dokumentu">
+        <div class="chain-h">
+          <h3>Gmina Zławieś Wielka · protokół konieczności nr 1</h3>
+          <span class="tag t-warn">R07 roboty dodatkowe</span>
+          <span class="tag t-warn">R02 stan istniejący</span>
+        </div>
+        <ol>
+          <li><span class="k">Sygnał</span><div class="v">Protokół konieczności z 28.10.2025 do umowy nr 272.4.27.1.0.2025, podstawa zmiany z art. 455 ust. 1 pkt 3 Pzp.<br><span class="tag t-src">dokument DOCX · pkt 4</span></div></li>
+          <li><span class="k">Zdarzenie</span><div class="v">Wymiana dwóch filtrów na stacji uzdatniania wody, które miały pozostać w eksploatacji.
+            <div class="quote">„…na podstawie deklaracji przedstawionej przez Inwestora, nie pozwala na ich dalsze użytkowanie…”<cite>Protokół, pkt 2.1</cite></div></div></li>
+          <li><span class="k">Wpływ</span><div class="v"><b>+36 dni</b> (30.10.2025 na 05.12.2025) i <b>151 481,54 zł brutto</b> robót dodatkowych.<br><span class="tag t-src">pkt 3 protokołu</span> <span class="tag t-calc">dni wyliczone</span></div></li>
+          <li><span class="k">Przyczyna</span><div class="v">Stan techniczny urządzeń oceniony dopiero po odkryciu, na podstawie deklaracji inwestora.</div></li>
+          <li><span class="k">Działanie</span><div class="v">W nowej inwestycji: ocena techniczna istniejących urządzeń przed opracowaniem PFU i zapis w umowie o trybie wyceny robót zamiennych.<br><span class="tag t-exp">propozycja do zatwierdzenia</span></div></li>
+        </ol>
+        <div class="chain-f"><svg width="16" height="16" style="color:var(--c-src)"><use href="#i-link"/></svg>Dane z protokołu gminy. BidRadar porównuje je z ogłoszeniem w BZP i zgłasza niezgodności ekspertowi.</div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="dla-kogo" aria-labelledby="h-roles">
+  <div class="wrap">
+    <div class="sec-h rv">
+      <span class="tag t-brand">Dla kogo</span>
+      <h2 id="h-roles">Zaprojektowane dla ludzi, którzy przygotowują inwestycje</h2>
+      <p>Prosty język, podpowiedzi przy skrótach i maksymalnie trzy kroki do odpowiedzi. Nie trzeba umieć programować.</p>
+    </div>
+    <div class="roles">
+      <article class="role rv tilt">
+        <div class="ic"><svg><use href="#i-search"/></svg></div>
+        <h3>Ekspert analityk</h3>
+        <div class="who">gmina, administracja, instytucja finansująca</div>
+        <p>Szybko rozumie podstawę analizy, ograniczenia danych i poziom pewności. Dostaje listę zagadnień do sprawdzenia przed startem projektu.</p>
+      </article>
+      <article class="role rv tilt">
+        <div class="ic"><svg><use href="#i-shield"/></svg></div>
+        <h3>Ekspert zatwierdzający</h3>
+        <div class="who">doświadczony specjalista ds. inwestycji</div>
+        <p>Zatwierdza, poprawia i odrzuca wnioski. Bez programisty edytuje katalog ryzyk, opisy podsektorów i wagi podobieństwa.</p>
+      </article>
+      <article class="role rv tilt">
+        <div class="ic"><svg><use href="#i-eye"/></svg></div>
+        <h3>Audytor i kontroler</h3>
+        <div class="who">kontrola, ewaluacja, nadzór</div>
+        <p>Klika w dowolną liczbę i od razu widzi ogłoszenie, pole formularza i cytat. Historia decyzji pokazuje, kto i kiedy zmienił wniosek.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="alt" aria-labelledby="h-exp">
+  <div class="wrap exp-wrap">
+    <div class="queue rv" aria-hidden="true">
+      <div class="qi">
+        <div class="qi-h"><span class="tag t-warn">do decyzji eksperta</span><span class="tag">dopasowanie rozmyte (NIP + nazwa)</span></div>
+        <h4>Dopasowanie projektu bez numeru BZP</h4>
+        <p>Gmina Kamionka · KPOD.03.15-IW.15-0081/25 ↔ postępowanie z BZP</p>
+        <div class="why"><span class="tag t-ok">NIP zgodny</span><span class="tag t-ok">nazwa podobna w 99%</span><span class="tag">projekt KPO bez numeru BZP</span></div>
+        <div class="acts"><span class="a-ok"><svg><use href="#i-check"/></svg>Zatwierdź</span><span><svg><use href="#i-edit"/></svg>Popraw</span><span class="a-bad"><svg><use href="#i-x"/></svg>Odrzuć</span></div>
+      </div>
+      <div class="qi">
+        <div class="qi-h"><span class="tag t-bad">niezgodność</span><span class="tag">weryfikacja z BZP</span></div>
+        <h4>Dokument różni się od ogłoszenia: termin umowy</h4>
+        <p>Gmina Zławieś Wielka · protokół konieczności ↔ ogłoszenie w BZP</p>
+      </div>
+      <div class="qi">
+        <div class="qi-h"><span class="tag t-exp">propozycja systemu</span><span class="tag">nowa kategoria</span></div>
+        <h4>Proponowana kategoria ryzyka do katalogu</h4>
+        <p>Czeka na decyzję eksperta</p>
+      </div>
+    </div>
+    <div class="rv">
+      <span class="tag t-brand" style="margin-bottom:14px">Kontrola ekspercka</span>
+      <h2 style="font-size:clamp(28px,3.2vw,38px)">System proponuje. Ekspert decyduje.</h2>
+      <p style="margin-top:14px;font-size:17px;color:var(--c-ink-2)">Kolejka „Do weryfikacji” zaczyna od najmniej pewnych wniosków. Przy odrzuceniu zawsze zapisujesz krótki komentarz.</p>
+      <ul class="chk">
+        <li><svg><use href="#i-check"/></svg><span><b>Zatwierdź, popraw, odrzuć</b> albo oznacz jako przykład wzorcowy.</span></li>
+        <li><svg><use href="#i-check"/></svg><span><b>Decyzje zostają</b> przy ponownym imporcie i są używane w kolejnych analizach.</span></li>
+        <li><svg><use href="#i-check"/></svg><span><b>Pełna historia:</b> kto, kiedy i co zmienił. Gotowa do audytu.</span></li>
+      </ul>
+      <div class="cta"><a class="btn btn-primary" data-href="expert" href="/"><svg><use href="#i-user"/></svg>Zaloguj się do panelu eksperta</a></div>
+    </div>
+  </div>
+</section>
+
+<section id="zrodla" aria-labelledby="h-src">
+  <div class="wrap">
+    <div class="sec-h rv">
+      <span class="tag t-brand">Źródła danych</span>
+      <h2 id="h-src">Dane pobierane automatycznie, bez ręcznego przepisywania</h2>
+      <p>Przycisk „Odśwież” w zakładce Źródła danych uruchamia pełny import. Każde zapytanie trafia do dziennika.</p>
+    </div>
+    <div class="sources">
+      <article class="srcc rv tilt"><span class="tag t-src"><svg><use href="#i-db"/></svg>BZP / e-Zamówienia</span><h3>Ogłoszenia o zamówieniach</h3><p>Zamówienie, wynik, zmiany i wykonanie umowy. Łączenie po OCID i odwołaniach w polach 3.2.1 i 4.5.</p><div class="meta">ok. 113 tys. ogłoszeń wod-kan, 2021–2026</div></article>
+      <article class="srcc rv tilt"><span class="tag t-src"><svg><use href="#i-globe"/></svg>TED</span><h3>Dziennik Urzędowy UE</h3><p>Publiczne API bez klucza. Zamówienia wod-kan z Polski powyżej progów unijnych, łączone z projektami po NIP i nazwie zamawiającego.</p><div class="meta">kody CPV robót wod-kan, od 2021 r.</div></article>
+      <article class="srcc rv tilt"><span class="tag t-src"><svg><use href="#i-sheet"/></svg>Rejestry projektów</span><h3>Rekordy projektów</h3><p>Rekordy z rejestrów projektów (KPO, fundusze UE) w formatach XLSX, CSV i JSON. Łączone z BZP po numerze ogłoszenia, NIP i nazwie.</p><div class="meta">22 projekty w bazie pilotażowej</div></article>
+      <article class="srcc rv tilt"><span class="tag t-src"><svg><use href="#i-scan"/></svg>Dokumenty</span><h3>Protokoły, pisma, opisy</h3><p>DOCX, PDF i skany przez OCR w języku polskim. Fakty są sprawdzane krzyżowo z BZP.</p><div class="meta">DOCX, DOC, PDF, skany, ODT, RTF</div></article>
+      <article class="srcc rv tilt"><span class="tag t-src"><svg><use href="#i-globe"/></svg>OpenStreetMap</span><h3>Lokalizacja</h3><p>Siedziby zamawiających z Nominatim, zapisane w bazie. Bez internetu: środek województwa.</p><div class="meta">źródło położenia opisane przy pinezce</div></article>
+      <article class="srcc rv tilt"><span class="tag t-warn"><svg><use href="#i-clock"/></svg>Monitorowanie</span><h3>Projekty w toku</h3><p>Cykliczne sprawdzanie nowych ogłoszeń. Nowa zmiana umowy, np. z art. 455 ust. 1 pkt 4 Pzp, trafia od razu do kolejki eksperta.</p><div class="meta">domyślnie co 6 godzin</div></article>
+    </div>
+    <div class="honest rv" role="note">
+      <svg><use href="#i-alert"/></svg>
+      <p><b>Uczciwie o lokalizacji:</b> BZP podaje adres zamawiającego, a nie placu budowy. Dlatego przy każdej pinezce pokazujemy, skąd pochodzi jej położenie: z siedziby zamawiającego w OpenStreetMap albo, bez internetu, z przybliżenia do województwa.</p>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="pytania" aria-labelledby="h-faq">
+  <div class="wrap">
+    <div class="sec-h rv">
+      <span class="tag t-brand">Pytania</span>
+      <h2 id="h-faq">Najczęstsze pytania</h2>
+    </div>
+    <div class="faq rv">
+      <details>
+        <summary>Czy BidRadar działa bez internetu?<svg><use href="#i-plus"/></svg></summary>
+        <p>Tak. Mapa, czcionki i granice województw są wbudowane w aplikację, a dane z BZP mogą pochodzić z lokalnej kopii. Internet przydaje się do odświeżania ogłoszeń i pierwszego ustalenia położenia siedzib zamawiających.</p>
+      </details>
+      <details>
+        <summary>Skąd biorą się liczby i kto podejmuje decyzje?<svg><use href="#i-plus"/></svg></summary>
+        <p>Liczby pochodzą wprost z ogłoszeń w BZP i TED oraz z dokumentów projektu, a przedziały liczymy z zakończonych umów o podobnych cechach. Wnioski powstają z jawnych reguł ekspertów i statystyki, więc te same dane dają zawsze ten sam wynik. Każdy wniosek ma status propozycji, dopóki nie zatwierdzi go ekspert.</p>
+      </details>
+      <details>
+        <summary>Co, jeśli projekt nie ma numeru ogłoszenia w BZP?<svg><use href="#i-plus"/></svg></summary>
+        <p>Wtedy szukamy kandydata po NIP, nazwie, miejscowości, kodzie CPV, wartości i datach. Wynik dostaje pewność od 0 do 100% i listę powodów, a decyzję zawsze podejmuje ekspert.</p>
+      </details>
+      <details>
+        <summary>Jak pobrać wyniki?<svg><use href="#i-plus"/></svg></summary>
+        <p>Każdą tabelę i rekord pobierzesz jako JSON lub CSV, a raporty jako dokument Word (.docx) albo stronę gotową do zapisania w PDF. Pełną bazę pobierzesz jako jedną paczkę JSON. Raport nowej inwestycji zawiera fakty z cytatami, macierz ryzyk R01–R15, porównanie z zakończonymi umowami i listę brakujących informacji.</p>
+      </details>
+      <details>
+        <summary>Czy trzeba się logować?<svg><use href="#i-plus"/></svg></summary>
+        <p>Do przeglądania nie. Mapę, projekty, źródła, eksporty i analizę nowej inwestycji otworzysz bez konta. Logowanie jest potrzebne do zapisywania decyzji eksperta, zmiany katalogu ryzyk i wag oraz wgrywania dokumentów. Dzięki temu w historii widać, kto i kiedy podjął decyzję.</p>
+      </details>
+      <details>
+        <summary>Czy można dodać inne sektory i źródła?<svg><use href="#i-plus"/></svg></summary>
+        <p>Tak. Katalog ryzyk, podsektory i wagi podobieństwa ekspert zmienia w aplikacji, bez programisty. Nowy sektor, np. drogi, to nowy zestaw reguł podsektorów. Kolejne źródło danych podłącza się tak samo jak TED.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="final" style="padding-top:88px">
+  <div class="wrap">
+    <div class="final-box rv">
+      <div>
+        <h2>Sprawdź swoją następną inwestycję</h2>
+        <p>Wskaż gminę na mapie albo wklej opis projektu. Pierwszy wynik zobaczysz w kilka sekund, bez zakładania konta.</p>
+      </div>
+      <div class="cta">
+        <a class="btn btn-primary btn-lg" data-href="app" href="/">Otwórz panel</a>
+        <a class="btn btn-line btn-lg" data-href="expert" href="/">Zaloguj się jako ekspert</a>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<aside class="sticky-cta" id="stickyCta" aria-label="Szybki start" hidden>
+  <p>Sprawdź ryzyka swojej inwestycji, bez zakładania konta.</p>
+  <a class="btn btn-primary btn-sm" data-href="app" href="/">Otwórz panel</a>
+  <button class="x" type="button" aria-label="Ukryj pasek"><svg><use href="#i-x"/></svg></button>
+</aside>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="BidRadar – na górę strony">
+      <img src="/static/logo.png" alt="" width="37" height="28">
+      <span class="wm">Bid<span>Radar</span></span>
+    </a>
+    <nav aria-label="Stopka">
+      <a href="#jak-dziala">Jak to działa</a>
+      <a href="#porownanie">Wyniki</a>
+      <a href="#zrodla">Źródła danych</a>
+      <a data-href="app" href="/">Panel</a>
+    </nav>
+    <p class="fine">Dane: Biuletyn Zamówień Publicznych (e-Zamówienia), TED – Dziennik Urzędowy UE, rejestry projektów, OpenStreetMap (ODbL), Natural Earth, GADM. Wyniki mają charakter pomocniczy i wymagają weryfikacji eksperta.</p>
+  </div>
+</footer>
+
+<script>
+
+const LINKS = { app: "/app", expert: "/login?next=/app" };
+document.body.classList.remove("no-js");
+document.querySelectorAll("[data-href]").forEach(a => { const u = LINKS[a.dataset.href]; if (u) a.href = u; });
+
+const mb = document.querySelector(".menu-btn"), mn = document.getElementById("mnav");
+mb.addEventListener("click", () => { const o = mn.classList.toggle("open"); mb.setAttribute("aria-expanded", o); mb.setAttribute("aria-label", o ? "Ukryj menu" : "Pokaż menu"); });
+mn.querySelectorAll("a").forEach(a => a.addEventListener("click", () => { mn.classList.remove("open"); mb.setAttribute("aria-expanded", "false"); }));
+document.addEventListener("keydown", e => { if (e.key === "Escape" && mn.classList.contains("open")) { mn.classList.remove("open"); mb.setAttribute("aria-expanded", "false"); mb.focus(); } });
+
+const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" }) : null;
+document.querySelectorAll(".rv").forEach(el => io ? io.observe(el) : el.classList.add("in"));
+
+if (!io) document.querySelectorAll(".rv").forEach(el => el.classList.add("in"));
+window.addEventListener("beforeprint", () => document.querySelectorAll(".rv").forEach(el => el.classList.add("in")));
+
+const C = 314.16;
+function donutGo(f) {
+  const v = +f.dataset.v, v2 = +(f.dataset.v2 || 0), a1 = f.querySelector(".arc"), a2 = f.querySelector(".arc2");
+  a1.style.strokeDasharray = `${C * v / 100} ${C}`;
+  if (a2) { a2.style.strokeDasharray = `${C * v2 / 100} ${C}`; a2.style.strokeDashoffset = `${-C * v / 100}`; }
+  numGo(f.querySelector("[data-to]"));
+}
+function numGo(el) {
+  if (!el) return; const to = +el.dataset.to, dec = String(el.dataset.to).includes(".") ? 1 : 0;
+  const fmt = x => x.toLocaleString("pl-PL", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { el.textContent = fmt(to); return; }
+  const t0 = performance.now(), dur = 1400;
+  const step = t => { const k = Math.min(1, (t - t0) / dur); el.textContent = fmt(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); };
+  el.textContent = fmt(0); requestAnimationFrame(step);
+}
+if ("IntersectionObserver" in window) {
+  const dio = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; dio.unobserve(e.target);
+    if (e.target.classList.contains("donut")) donutGo(e.target); else e.target.querySelectorAll("[data-to]").forEach(numGo); }), { threshold: .45 });
+  document.querySelectorAll(".donut,.flow").forEach(el => dio.observe(el));
+} else document.querySelectorAll(".donut").forEach(donutGo);
+
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+document.querySelectorAll(".steps,.layers,.roles,.sources,.stats").forEach(g => g.querySelectorAll(".rv,.stat").forEach((el, i) => el.style.setProperty("--d", i)));
+requestAnimationFrame(() => document.querySelector(".hero").classList.add("in"));
+function countUp(el) {
+  const to = +el.dataset.count; if (still || !to) return;
+  const dec = (el.dataset.count.split(".")[1] || "").length, suf = el.dataset.suffix || "";
+  const fmt = v => v.toLocaleString("pl-PL", { minimumFractionDigits: dec, maximumFractionDigits: dec }) + suf;
+  const t0 = performance.now(), dur = to > 1000 ? 1800 : 1400;
+  const step = t => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    el.firstChild.nodeValue = fmt(dec ? to * e : Math.round(to * e)); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+const cio = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { countUp(e.target); cio.unobserve(e.target); } }), { threshold: .6 }) : null;
+if (cio && !still) document.querySelectorAll("[data-count]").forEach(el => { const d = (el.dataset.count.split(".")[1] || "").length;
+  if (el.firstChild) el.firstChild.nodeValue = (0).toLocaleString("pl-PL", { minimumFractionDigits: d }) + (el.dataset.suffix || ""); });
+const startCounters = () => setTimeout(() => document.querySelectorAll("[data-count]").forEach(el => cio && cio.observe(el)), 350);
+if (document.readyState === "complete") startCounters(); else addEventListener("load", startCounters);
+if (!still && matchMedia("(hover: hover) and (pointer: fine)").matches) {
+  document.querySelectorAll(".tilt").forEach(c => {
+    c.addEventListener("pointermove", e => { const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+      c.style.transform = `perspective(900px) rotateX(${(-y * 4).toFixed(2)}deg) rotateY(${(x * 5).toFixed(2)}deg) translateY(-3px)`; });
+    c.addEventListener("pointerleave", () => { c.style.transform = ""; });
+  });
+
+}
+
+const navEl = document.getElementById("nav");
+const navUpd = () => navEl.classList.toggle("solid", scrollY > innerHeight * 0.6 || document.getElementById("mnav").classList.contains("open"));
+addEventListener("scroll", navUpd, { passive: true }); navUpd();
+document.querySelector(".menu-btn").addEventListener("click", () => setTimeout(navUpd, 0));
+
+(() => {
+  const list = document.getElementById("feats"); if (!list) return;
+  const rows = [...list.querySelectorAll(".feat")], card = list.querySelector(".feat-card");
+  let cur = -1, timer = null, hold = false;
+  const on = i => { cur = i; rows.forEach((r, k) => r.classList.toggle("on", k === i));
+    if (card) { const r = rows[i]; card.style.transform = `translateY(${r.offsetTop + r.offsetHeight / 2 - 70}px) rotate(${i % 2 ? -6 : 8}deg)`; card.classList.add("show"); } };
+  rows.forEach((r, i) => { r.addEventListener("pointerenter", () => { hold = true; on(i); }); r.addEventListener("focus", () => { hold = true; on(i); }); });
+  list.addEventListener("pointerleave", () => { hold = false; }); list.addEventListener("focusout", () => { hold = false; });
+  const start = () => { if (timer || still) return; timer = setInterval(() => { if (!hold) on((cur + 1) % rows.length); }, 2800); };
+  const stop = () => { clearInterval(timer); timer = null; };
+  on(3);
+  if ("IntersectionObserver" in window) new IntersectionObserver(([e]) => e.isIntersecting ? start() : stop(), { threshold: .3 }).observe(list);
+})();
+
+const sc = document.getElementById("stickyCta");
+let scClosed = false;
+try { scClosed = sessionStorage.getItem("bidradar_cta") === "0"; } catch (e) {}
+if (sc && "IntersectionObserver" in window && !scClosed) {
+  sc.hidden = false;
+  let heroOut = false, finalIn = false;
+  const upd = () => sc.classList.toggle("show", heroOut && !finalIn && !scClosed);
+  new IntersectionObserver(([e]) => { heroOut = !e.isIntersecting; upd(); }).observe(document.querySelector(".hero"));
+  new IntersectionObserver(([e]) => { finalIn = e.isIntersecting; upd(); }).observe(document.querySelector(".final"));
+  sc.querySelector(".x").addEventListener("click", () => { scClosed = true; upd(); try { sessionStorage.setItem("bidradar_cta", "0"); } catch (e) {} });
+}
+
+document.querySelectorAll('a[data-href="app"],a[data-href="expert"]').forEach(a => a.addEventListener("click", e => {
+  if (still || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+  e.preventDefault(); document.body.classList.add("leaving"); setTimeout(() => { location.href = a.href; }, 240);
+}));
+addEventListener("pageshow", () => document.body.classList.remove("leaving"));
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+services:
+  bidradar:
+    build: .
+    network_mode: host
+    environment:
+      RM_BZP_URL: http://127.0.0.1:8010
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - ./dane:/dane
+      - ./paczka:/paczka:ro
+      - ./dokumenty:/app/dokumenty
+    restart: unless-stopped

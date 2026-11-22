@@ -1,0 +1,51 @@
+{
+  "sektor": "Gospodarka wodno-kanalizacyjna",
+  "domyslny": "Inne obiekty wod-kan",
+  "reguly": [
+    {
+      "nazwa": "Oczyszczalnia ścieków",
+      "wzorce": [
+        "oczyszczal"
+      ]
+    },
+    {
+      "nazwa": "Kanalizacja deszczowa i retencja",
+      "wzorce": [
+        "deszczow",
+        "retenc",
+        "odwodni"
+      ]
+    },
+    {
+      "nazwa": "Uzdatnianie i zaopatrzenie w wodę",
+      "wzorce": [
+        "uzdatnian",
+        "\\bsuw\\b",
+        "stacj\\w* uzdat",
+        "ujęci",
+        "zbiornik\\w* wody",
+        "studni"
+      ]
+    },
+    {
+      "nazwa": "Kanalizacja sanitarna",
+      "wzorce": [
+        "kanalizac",
+        "tłoczn",
+        "ścieków",
+        "przepompowni",
+        "wodno-ściek",
+        "ściekow",
+        "skanalizow"
+      ]
+    },
+    {
+      "nazwa": "Sieć wodociągowa",
+      "wzorce": [
+        "wodociąg",
+        "sieci wod",
+        "wody"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+[Unit]
+Description=BidRadar – mapa ryzyk inwestycji wodno-kanalizacyjnych
+After=network-online.target bidradar-bzp.service
+Wants=bidradar-bzp.service
+
+[Service]
+User=bidradar
+WorkingDirectory=/opt/bidradar
+EnvironmentFile=-/opt/bidradar/.env
+Environment=RM_HOST=127.0.0.1 RM_PORT=8000 RM_SECURE_COOKIE=1
+ExecStart=/usr/bin/python3 /opt/bidradar/server.py --xlsx /opt/bidradar/paczka/Risk_Miner_dane_projekty.xlsx
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

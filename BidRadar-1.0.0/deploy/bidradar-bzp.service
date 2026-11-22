@@ -1,0 +1,12 @@
+[Unit]
+Description=Kopia API Biuletynu Zamówień Publicznych dla BidRadar
+After=network.target
+
+[Service]
+User=bidradar
+WorkingDirectory=/opt/bidradar/risk_miner_bzp_kopia
+ExecStart=/usr/bin/python3 bzp_mirror.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
